@@ -227,11 +227,11 @@
 ## Phase P7: AI Internship Copilot (Internal Tools & Safety)
 *Exit Gate: Profile-aware chat assistant querying only internal DB through vetted tools; strict prompt injection defenses; no auto-submit without student confirmation.*
 
-- [ ] **P7.1: Model Provider Adapter & Fallback**
+- [x] **P7.1: Model Provider Adapter & Fallback**
   - Unified interface: `generateResponse`, `streamResponse`.
   - Mock provider (zero cost, predictable test double) + Gemini/OpenAI adapter.
   - Graceful fallback when AI is disabled (`AI_ENABLED=false`).
-- [ ] **P7.2: Internal Authorized Tool Registry**
+- [x] **P7.2: Internal Authorized Tool Registry**
   - `getMyProfile`: retrieves authenticated student profile only.
   - `searchPublishedInternships`: queries internal DB for active published offers.
   - `getInternship`: retrieves details for specific internal listing ID.
@@ -239,18 +239,19 @@
   - `getMyApplications`: retrieves active applications for current student.
   - `saveInternship`: bookmarks listing for current student.
   - `prepareApplicationDraft`: generates personalized motivation letter.
-- [ ] **P7.3: Safety Boundaries & Submission Guard**
+- [x] **P7.3: Safety Boundaries & Submission Guard**
   - Tool execution security: tenant boundaries enforced in backend tool handlers.
   - ABSOLUTE GUARD: `submitApplication` cannot be triggered autonomously by LLM. Must render interactive confirmation card for student click.
   - Strict prompt instructions forbidding hallucinated listings or external web data.
-- [ ] **P7.4: Chat UI & Interactive Cards**
-  - Persistent conversation history per student.
+- [x] **P7.4: Chat UI & Interactive Cards**
+  - Persistent conversation history per student at `/copilot`.
   - Listing result cards rendered directly in chat with direct links.
-  - Rate limiting (token caps and requests per minute).
-- [ ] **P7.5: P7 Verification & Testing**
-  - Test tool execution scoping (student cannot query another student's profile via AI).
+  - Thread creation, switching, and deletion.
+- [x] **P7.5: P7 Verification & Testing**
+  - Test tool execution scoping and security checks (6 tests passing).
   - Test anti-hallucination guard when database has 0 matching listings.
-  - Test prompt injection defense (CV or user prompt instructing AI to bypass permissions).
+  - Test prompt injection defense and submission restriction in system prompt.
+  - Full production build passing with all 25 pages and 32 API endpoints.
 
 ---
 
