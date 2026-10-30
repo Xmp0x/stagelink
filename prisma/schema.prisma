@@ -1,0 +1,543 @@
+// ==============================================================================
+// StageLink — Master Prisma Database Schema
+// Authoritative specification: StageLink_Master_Development_Plan.md
+// ==============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  COMPANY
+  ADMIN
+}
+
+enum Modality {
+  REMOTE
+  ONSITE
+  HYBRID
+}
+
+enum CompanyStatus {
+  PENDING_VERIFICATION
+  VERIFIED
+  REJECTED
+  SUSPENDED
+}
+
+enum CompanyRole {
+  OWNER
+  ADMIN
+  RECRUITER
+  MEMBER
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  PAUSED
+  CLOSED
+  EXPIRED
+  REJECTED
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  SHORTLISTED
+  INTERVIEW
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum CVStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+enum ExtractionStatus {
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum ProficiencyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum LanguageProficiency {
+  BASIC
+  CONVERSATIONAL
+  FLUENT
+  NATIVE
+}
+
+enum NotificationType {
+  APPLICATION_STATUS
+  NEW_MATCH
+  VERIFICATION_UPDATE
+  LISTING_MODERATION
+  SYSTEM
+}
+
+// -----------------------------------------------------------------------------
+// Identity & Authentication
+// -----------------------------------------------------------------------------
+
+model User {
+  id                String              @id @default(cuid())
+  email             String              @unique
+  passwordHash      String
+  role              UserRole            @default(STUDENT)
+  isEmailVerified   Boolean             @default(false)
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  studentProfile    StudentProfile?
+  companyMemberships CompanyMembership[]
+  notifications     Notification[]
+  auditEvents       AuditEvent[]
+
+  @@index([email])
+  @@index([role, isActive])
+  @@map("users")
+}
+
+// -----------------------------------------------------------------------------
+// Student Domain
+// -----------------------------------------------------------------------------
+
+model StudentProfile {
+  id                    String              @id @default(cuid())
+  userId                String              @unique
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  firstName             String
+  lastName              String
+  phone                 String?
+  city                  String?             // Moroccan city (e.g. Tangier, Casablanca)
+  institution           String?             // E.g. CMC Tangier, 1337, ENSA
+  degree                String?             // E.g. Technician, Bachelor, Engineer
+  academicYear          String?             // E.g. 1st Year, 2nd Year, Graduated
+  bio                   String?
+  
+  availableFrom         DateTime?
+  availableTo           DateTime?
+  preferredModality     Modality            @default(ONSITE)
+  preferredDurationWeeks Int?               @default(8)
+  
+  discoverabilityConsent Boolean            @default(false) // Company search opt-in
+  profileCompleteness   Int                 @default(0)     // Heuristic percentage (0-100)
+  
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  education             StudentEducation[]
+  skills                StudentSkill[]
+  languages             StudentLanguage[]
+  projects              StudentProject[]
+  cvDocuments           CVDocument[]
+  extractions           CVExtraction[]
+  applications          Application[]
+  savedInternships      SavedInternship[]
+  matches               MatchResult[]
+  chatConversations     ChatConversation[]
+
+  @@index([city])
+  @@index([discoverabilityConsent])
+  @@map("student_profiles")
+}
+
+model StudentEducation {
+  id                String          @id @default(cuid())
+  studentId         String
+  student           StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  school            String
+  degree            String
+  fieldOfStudy      String?
+  startDate         DateTime?
+  endDate           DateTime?
+  isCurrent         Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+
+  @@index([studentId])
+  @@map("student_education")
+}
+
+model Skill {
+  id                String          @id @default(cuid())
+  name              String          @unique // Canonical normalized name (e.g. "React", "Figma")
+  category          String?         // E.g. "Design", "Software Engineering", "Marketing"
+  synonyms          String?         // Comma-separated or JSON list of synonyms
+  
+  studentSkills     StudentSkill[]
+  internshipSkills  InternshipSkill[]
+
+  @@index([name])
+  @@map("skills")
+}
+
+model StudentSkill {
+  id                String          @id @default(cuid())
+  studentId         String
+  student           StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  skillId           String
+  skill             Skill           @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  proficiency       ProficiencyLevel @default(INTERMEDIATE)
+  yearsExperience   Float?
+
+  @@unique([studentId, skillId])
+  @@index([studentId])
+  @@index([skillId])
+  @@map("student_skills")
+}
+
+model StudentLanguage {
+  id                String              @id @default(cuid())
+  studentId         String
+  student           StudentProfile      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  language          String              // E.g. English, French, Arabic
+  proficiency       LanguageProficiency @default(CONVERSATIONAL)
+
+  @@unique([studentId, language])
+  @@index([studentId])
+  @@map("student_languages")
+}
+
+model StudentProject {
+  id                String          @id @default(cuid())
+  studentId         String
+  student           StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title             String
+  description       String?
+  url               String?
+  startDate         DateTime?
+  endDate           DateTime?
+  createdAt         DateTime        @default(now())
+
+  @@index([studentId])
+  @@map("student_projects")
+}
+
+// -----------------------------------------------------------------------------
+// CV Private Documents & Extraction
+// -----------------------------------------------------------------------------
+
+model CVDocument {
+  id                String          @id @default(cuid())
+  studentId         String
+  student           StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  filename          String
+  storageKey        String          // Secure private path, never public
+  mimeType          String          // "application/pdf"
+  fileSizeBytes     Int
+  processingStatus  CVStatus        @default(PENDING)
+  activeVersion     Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+
+  extractions       CVExtraction[]
+  applications      Application[]
+
+  @@index([studentId, activeVersion])
+  @@map("cv_documents")
+}
+
+model CVExtraction {
+  id                String            @id @default(cuid())
+  cvDocumentId      String
+  cvDocument        CVDocument        @relation(fields: [cvDocumentId], references: [id], onDelete: Cascade)
+  studentId         String
+  student           StudentProfile    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  rawText           String?
+  extractedSkills   String?           // JSON array of strings
+  extractedEducation String?          // JSON array of objects
+  extractedExperience String?         // JSON array of objects
+  confidenceScore   Float             @default(0.0)
+  status            ExtractionStatus  @default(PENDING_REVIEW)
+  reviewedAt        DateTime?
+  createdAt         DateTime          @default(now())
+
+  @@index([cvDocumentId])
+  @@index([studentId])
+  @@map("cv_extractions")
+}
+
+// -----------------------------------------------------------------------------
+// Company Domain
+// -----------------------------------------------------------------------------
+
+model Company {
+  id                String              @id @default(cuid())
+  legalName         String
+  tradeName         String?
+  sector            String              // E.g. Technology, Logistics, Finance
+  description       String?
+  website           String?
+  address           String?
+  city              String              // E.g. Tangier, Casablanca, Rabat
+  logoUrl           String?
+  status            CompanyStatus       @default(PENDING_VERIFICATION)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  memberships       CompanyMembership[]
+  verifications     CompanyVerification[]
+  internships       Internship[]
+
+  @@index([status])
+  @@index([city])
+  @@index([sector])
+  @@map("companies")
+}
+
+model CompanyMembership {
+  id                String          @id @default(cuid())
+  companyId         String
+  company           Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role              CompanyRole     @default(MEMBER)
+  createdAt         DateTime        @default(now())
+
+  @@unique([companyId, userId])
+  @@index([userId])
+  @@index([companyId])
+  @@map("company_memberships")
+}
+
+model CompanyVerification {
+  id                    String              @id @default(cuid())
+  companyId             String
+  company               Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  registrationNumber    String?             // RC / ICE / Patent in Morocco
+  documentStorageKey    String?             // Private verification proof
+  status                VerificationStatus  @default(PENDING)
+  reviewerNotes         String?
+  reviewedAt            DateTime?
+  reviewedByUserId      String?
+  createdAt             DateTime            @default(now())
+
+  @@index([companyId])
+  @@index([status])
+  @@map("company_verifications")
+}
+
+// -----------------------------------------------------------------------------
+// Internship Listings
+// -----------------------------------------------------------------------------
+
+model Internship {
+  id                    String              @id @default(cuid())
+  companyId             String
+  company               Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  
+  title                 String
+  department            String?
+  sector                String
+  city                  String              // Moroccan city
+  modality              Modality            @default(ONSITE)
+  durationWeeks         Int                 @default(8)
+  startMonth            String?             // E.g. "July 2026"
+  deadlineDate          DateTime
+  openPositions         Int                 @default(1)
+  description           String
+  requirements          String?
+  isPaid                Boolean             @default(false)
+  stipendAmount         Float?
+  
+  status                ListingStatus       @default(DRAFT)
+  rejectionReason       String?
+  publishedAt           DateTime?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  skills                InternshipSkill[]
+  applications          Application[]
+  savedByStudents       SavedInternship[]
+  matches               MatchResult[]
+
+  @@index([companyId, status])
+  @@index([status, deadlineDate])
+  @@index([city, modality])
+  @@map("internships")
+}
+
+model InternshipSkill {
+  id                String          @id @default(cuid())
+  internshipId      String
+  internship        Internship      @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  skillId           String
+  skill             Skill           @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  isRequired        Boolean         @default(true) // Hard requirement vs preferred
+
+  @@unique([internshipId, skillId])
+  @@index([internshipId])
+  @@index([skillId])
+  @@map("internship_skills")
+}
+
+// -----------------------------------------------------------------------------
+// Application Lifecycle
+// -----------------------------------------------------------------------------
+
+model Application {
+  id                String              @id @default(cuid())
+  studentId         String
+  student           StudentProfile      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  internshipId      String
+  internship        Internship          @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  cvDocumentId      String?
+  cvDocument        CVDocument?         @relation(fields: [cvDocumentId], references: [id], onDelete: SetNull)
+  
+  coverNote         String?
+  status            ApplicationStatus   @default(SUBMITTED)
+  submittedAt       DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  events            ApplicationEvent[]
+
+  @@unique([studentId, internshipId])
+  @@index([studentId])
+  @@index([internshipId, status])
+  @@map("applications")
+}
+
+model ApplicationEvent {
+  id                String              @id @default(cuid())
+  applicationId     String
+  application       Application         @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fromStatus        ApplicationStatus?
+  toStatus          ApplicationStatus
+  note              String?
+  actorUserId       String
+  createdAt         DateTime            @default(now())
+
+  @@index([applicationId])
+  @@map("application_events")
+}
+
+model SavedInternship {
+  id                String          @id @default(cuid())
+  studentId         String
+  student           StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  internshipId      String
+  internship        Internship      @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  createdAt         DateTime        @default(now())
+
+  @@unique([studentId, internshipId])
+  @@index([studentId])
+  @@map("saved_internships")
+}
+
+// -----------------------------------------------------------------------------
+// Matching Engine
+// -----------------------------------------------------------------------------
+
+model MatchResult {
+  id                String          @id @default(cuid())
+  studentId         String
+  student           StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  internshipId      String
+  internship        Internship      @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  
+  score             Float           // Heuristic compatibility percentage (0 - 100)
+  scoreVersion      String          @default("1.0.0")
+  isEligible        Boolean         @default(true)
+  matchFactors      String?         // JSON breakdown of matched criteria
+  missingFactors    String?         // JSON breakdown of missing requirements
+  calculatedAt      DateTime        @default(now())
+
+  @@unique([studentId, internshipId, scoreVersion])
+  @@index([studentId, score])
+  @@index([internshipId, score])
+  @@map("match_results")
+}
+
+// -----------------------------------------------------------------------------
+// AI Chat & Memory
+// -----------------------------------------------------------------------------
+
+model ChatConversation {
+  id                String          @id @default(cuid())
+  studentId         String
+  student           StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title             String          @default("Internship Discovery")
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  messages          ChatMessage[]
+
+  @@index([studentId])
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id                String            @id @default(cuid())
+  conversationId    String
+  conversation      ChatConversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role              String            // "user" | "assistant" | "system" | "tool"
+  content           String
+  toolCalls         String?           // JSON array of invoked tools
+  toolResults       String?           // JSON array of tool outputs
+  createdAt         DateTime          @default(now())
+
+  @@index([conversationId])
+  @@map("chat_messages")
+}
+
+// -----------------------------------------------------------------------------
+// Notifications & Auditing
+// -----------------------------------------------------------------------------
+
+model Notification {
+  id                String            @id @default(cuid())
+  recipientId       String
+  recipient         User              @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  title             String
+  message           String
+  type              NotificationType  @default(SYSTEM)
+  read              Boolean           @default(false)
+  data              String?           // JSON context data
+  createdAt         DateTime          @default(now())
+
+  @@index([recipientId, read])
+  @@map("notifications")
+}
+
+model AuditEvent {
+  id                String          @id @default(cuid())
+  actorUserId       String?
+  actor             User?           @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  action            String          // E.g. "COMPANY_VERIFIED", "CV_DELETED", "APPLICATION_STATUS_UPDATED"
+  targetType        String          // E.g. "Company", "Application", "User"
+  targetId          String
+  ipAddress         String?
+  userAgent         String?
+  metadata          String?         // JSON payload
+  createdAt         DateTime        @default(now())
+
+  @@index([actorUserId])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@map("audit_events")
+}

@@ -70,29 +70,30 @@
 ## Phase P1: Foundation (App Core, Database, Auth & Design System)
 *Exit Gate: Signup/login with secure session, role redirection, RBAC middleware, typed Prisma models, design tokens, unit/integration tests passing.*
 
-- [ ] **P1.1: Next.js + TypeScript + Tailwind Setup**
-  - Initialize Next.js 14/15 App Router project with TypeScript strict mode and Tailwind CSS.
+- [x] **P1.1: Next.js + TypeScript + Tailwind Setup**
+  - Initialize Next.js 14 App Router project with TypeScript strict mode and Tailwind CSS.
   - Configure path aliases (`@/*`).
   - Configure base layout, typography, and color tokens (premium modern professional SaaS theme).
-- [ ] **P1.2: Prisma Database Schema & Client**
+- [x] **P1.2: Prisma Database Schema & Client**
   - Define schema: `User`, `StudentProfile`, `Company`, `CompanyMembership`, `CompanyVerification`, `Internship`, `Application`, `CVDocument`, `CVExtraction`, `Skill`, `MatchResult`, `ChatConversation`, `ChatMessage`, `Notification`, `AuditEvent`.
   - Add indexes, unique constraints, foreign keys, and soft delete / audit fields.
   - Setup migration workflow and seed script foundation.
-- [ ] **P1.3: Authentication & Session Management**
-  - Implement secure password hashing (Argon2id or bcrypt).
+- [x] **P1.3: Authentication & Session Management**
+  - Implement secure password hashing (Argon2id / bcrypt).
   - Implement email/password signup and login endpoints.
   - Session management with JWT or secure server-side session cookies.
   - Role-based redirection (Student -> `/student/dashboard`, Company -> `/company/dashboard`, Admin -> `/admin`).
-- [ ] **P1.4: Server-Side Authorization Guard & Middleware**
+- [x] **P1.4: Server-Side Authorization Guard & Middleware**
   - RBAC utility helpers (`requireUser`, `requireRole`, `requireCompanyMembership`).
   - Strict tenant boundary checks to prevent IDOR vulnerabilities.
-- [ ] **P1.5: Shared UI Shell & Component Library**
+- [x] **P1.5: Shared UI Shell & Component Library**
   - Navbar with role-specific navigation and state.
   - Accessible button, input, badge, modal, card, and toast components.
   - Responsive layout shells for Public, Student, Company, and Admin portals.
-- [ ] **P1.6: P1 Verification & Testing**
+- [x] **P1.6: P1 Verification & Testing**
   - Unit tests for password hashing and auth utilities.
   - Integration tests for signup, login, session validation, and unauthorized 401/403 protection.
+  - Full production build (`npm run build`) passing with static + dynamic route generation.
 
 ---
 
