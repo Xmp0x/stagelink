@@ -19,9 +19,19 @@ export default function CompanyDashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/company/verification">
+          <Link href="/company/candidates">
             <Button size="sm" variant="default">
-              Submit Company Verification
+              Candidate Discovery
+            </Button>
+          </Link>
+          <Link href="/company/listings">
+            <Button size="sm" variant="outline">
+              Listings
+            </Button>
+          </Link>
+          <Link href="/company/verification">
+            <Button size="sm" variant="outline">
+              Verification
             </Button>
           </Link>
         </div>

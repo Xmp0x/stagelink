@@ -63,7 +63,19 @@ export function apiError(
   );
 }
 
+export class ApiError extends Error {
+  constructor(public statusCode: number, message: string, public code?: string) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 export function handleApiError(err: unknown): NextResponse<ApiErrorResponse> {
+  if (err instanceof ApiError) {
+    const code = err.code || (err.statusCode === 404 ? "NOT_FOUND" : err.statusCode === 403 ? "FORBIDDEN" : err.statusCode === 401 ? "UNAUTHORIZED" : err.statusCode === 409 ? "CONFLICT" : "BAD_REQUEST");
+    return apiError(err.message, code, err.statusCode);
+  }
+
   if (err instanceof ZodError) {
     const details = err.issues.map((issue) => ({
       field: issue.path.join("."),

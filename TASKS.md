@@ -200,26 +200,27 @@
 ## Phase P6: Bi-directional Explainable Matching Engine
 *Exit Gate: Deterministic compatibility algorithm with hard criteria filtering, skill taxonomy normalization, and transparent score explanations.*
 
-- [ ] **P6.1: Skills & Taxonomy Normalization Catalog**
+- [x] **P6.1: Skills & Taxonomy Normalization Catalog**
   - Canonical skills dictionary with synonyms (e.g., "React.js" = "React", "Figma" = "UI Design").
   - Moroccan city normalization.
-- [ ] **P6.2: Eligibility Rules Engine (Step A & B)**
+- [x] **P6.2: Eligibility Rules Engine (Step A & B)**
   - Hard constraints: availability date, minimum duration, mandatory required skills, modality.
   - Categorical eligibility determination (`eligible` vs `not_eligible` with specific reason).
-- [ ] **P6.3: Weighted Relevance Scoring (Step C)**
+- [x] **P6.3: Weighted Relevance Scoring (Step C)**
   - Configurable weights: Skills (35%), Education (15%), Location/Modality (15%), Field (15%), Duration (10%), Language (10%).
   - Heuristic score calculation: `0` to `100`.
   - Versioned scoring algorithm (`score_version: "1.0.0"`).
-- [ ] **P6.4: Explainability & Evidence Breakdown (Step E)**
+- [x] **P6.4: Explainability & Evidence Breakdown (Step E)**
   - Matched skills list, missing required skills list, location compatibility explanation.
   - Clear UI disclaimer: "Compatibility heuristic, not an employment guarantee".
-- [ ] **P6.5: Company-Side Candidate Discovery**
+- [x] **P6.5: Company-Side Candidate Discovery**
   - Recommend discoverable students to verified companies for specific active listings.
   - Strict privacy rule: ONLY students with `discoverabilityConsent = true` are queryable.
-- [ ] **P6.6: P6 Verification & Testing**
-  - Deterministic test fixtures verifying reproducible score outputs.
+- [x] **P6.6: P6 Verification & Testing**
+  - Deterministic test fixtures verifying reproducible score outputs (9 tests passing).
   - Hard requirement failure immediately returns `not_eligible`.
   - Privacy test verifying opted-out students are excluded.
+  - Full production build passing with all 24 pages and 29 API endpoints.
 
 ---
 

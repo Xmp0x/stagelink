@@ -14,6 +14,11 @@ export default function StudentDashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/student/matches">
+            <Button size="sm" variant="default" className="flex items-center gap-1.5">
+              <span>My Matches</span>
+            </Button>
+          </Link>
           <Link href="/copilot">
             <Button variant="outline" size="sm" className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-accent-emerald animate-pulse" />
@@ -21,7 +26,7 @@ export default function StudentDashboardPage() {
             </Button>
           </Link>
           <Link href="/internships">
-            <Button size="sm">Explore Internships</Button>
+            <Button variant="outline" size="sm">Explore Internships</Button>
           </Link>
         </div>
       </div>
