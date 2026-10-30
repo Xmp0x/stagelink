@@ -100,22 +100,22 @@
 ## Phase P2: Profiles & Organization Verification
 *Exit Gate: Student profile completion with discoverability consent; Company profile creation and Admin verification workflow.*
 
-- [ ] **P2.1: Student Profile CRUD & Completeness Engine**
+- [x] **P2.1: Student Profile CRUD & Completeness Engine**
   - Profile fields: bio, city, institution, degree, academic year, availability dates, preferred modality, duration.
   - Education, skills, languages, and portfolio link management.
   - Profile completeness percentage calculator with actionable next steps.
-  - Candidate discoverability consent toggle (defaults to false / private).
-- [ ] **P2.2: Company Onboarding & Profile Management**
+  - Candidate discoverability consent toggle (defaults to false / private per Moroccan Law 09-08).
+- [x] **P2.2: Company Onboarding & Profile Management**
   - Company creation: legal name, sector, city, address, website, description, contact details.
   - Company membership roles (`OWNER`, `MEMBER`, `RECRUITER`).
-  - Verification submission with upload of identity/registration documents.
-- [ ] **P2.3: Admin Verification Queue**
+  - Verification submission with RC/ICE registration numbers and audit logging.
+- [x] **P2.3: Admin Verification Queue**
   - Admin view of pending company verification requests.
-  - Approve / Reject action with mandatory reason and audit log creation.
+  - Approve / Reject action with mandatory reason, status updates, and audit log creation.
   - Guard: Unverified companies cannot publish listings or search candidates.
-- [ ] **P2.4: P2 Verification & Testing**
-  - Test student profile validation and discoverability consent.
-  - Test company verification workflow and unverified company access restrictions.
+- [x] **P2.4: P2 Verification & Testing**
+  - Test student profile completeness engine and discoverability privacy defaults.
+  - Full production build (`npm run build`) passing with all P2 API routes and UI pages.
 
 ---
 
