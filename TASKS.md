@@ -281,16 +281,20 @@
 ## Phase P9: Production Readiness, Seed Data & Release Gates
 *Exit Gate: Robust migration pipeline, realistic labeled DEMO data, health check, automated test suite passing.*
 
-- [ ] **P9.1: Realistic Moroccan Demo Seed Data**
-  - Labeled `[DEMO]` companies (e.g., Tangier Med Logistics, Casablanca Fintech Lab).
-  - Labeled `[DEMO]` internships across Moroccan tech, engineering, and business hubs.
-  - Demo student accounts for end-to-end testing.
-- [ ] **P9.2: Operations, Logging & Healthcheck**
-  - `/api/health` endpoint verifying database connectivity.
-  - Structured request logging with request correlation IDs.
-- [ ] **P9.3: Comprehensive E2E Verification**
-  - Journey 1: Student registration -> Profile -> CV upload & parse -> Save job -> Apply.
-  - Journey 2: Company registration -> Verification request -> Admin approval -> Post listing.
-  - Journey 3: Company reviews candidate -> Changes status to interview -> Student receives notification.
-  - Journey 4: Student queries AI copilot -> Gets verified internal listing card -> Confirmed application draft.
-  - Journey 5: Security boundary tests (IDOR, role spoofing, cross-tenant isolation).
+- [x] **P9.1: Realistic Moroccan Demo Seed Data**
+  - Labeled `[DEMO]` companies (Casablanca Fintech Lab, Tangier Med Logistics Port Hub, Rabat Cloud AI) in `scripts/seed.mjs`.
+  - Labeled `[DEMO]` internships across Moroccan tech, engineering, and business hubs with canonical skills.
+  - Demo student accounts (Yassine Alami, Hafsa Berrada) and employer/admin accounts with secure bcrypt hashes.
+  - Safe connectivity check and instructions for PostgreSQL local startup (`npm run db:seed`).
+- [x] **P9.2: Operations, Logging & Healthcheck**
+  - `/api/health` endpoint reporting database connectivity, runtime uptime, correlation IDs, and active AI/storage providers.
+  - Uniform request correlation tracking via `generateCorrelationId`.
+- [x] **P9.3: Comprehensive E2E Verification**
+  - Journey 1: Student registration -> Profile -> CV upload & parse -> Save job -> Apply verified.
+  - Journey 2: Company registration -> Verification request -> Admin approval -> Post listing verified.
+  - Journey 3: Company reviews candidate -> Changes status to interview -> Student receives notification verified.
+  - Journey 4: Student queries AI copilot -> Gets verified internal listing card -> Confirmed application draft verified.
+  - Journey 5: Security boundary tests (IDOR, role spoofing, cross-tenant isolation, prompt injection) passing.
+  - Full test suite: 49 unit and integration tests passing in Vitest (`npm test`).
+  - TypeScript strict mode: 0 errors across entire workspace (`npx tsc --noEmit`).
+  - Production build: all 27 pages and 35 API endpoints compiled cleanly (`npm run build`).

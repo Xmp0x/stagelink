@@ -16,7 +16,11 @@ export async function GET() {
     status: "ok",
     app: "StageLink",
     version: "1.0.0",
+    environment: process.env.NODE_ENV || "development",
     database: dbStatus,
+    aiProvider: process.env.AI_PROVIDER || "mock",
+    storageProvider: process.env.STORAGE_PROVIDER || "local",
+    uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
   });
 }

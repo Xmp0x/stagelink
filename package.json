@@ -11,7 +11,7 @@
     "test:watch": "vitest",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "node scripts/seed.mjs"
+    "db:seed": "node --env-file=.env scripts/seed.mjs"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
