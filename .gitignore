@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+/.nyc_output
+
+# Next.js build output
+/.next/
+/out/
+/dist/
+/build/
+
+# Production
+build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Local environment variables
+.env
+.env*.local
+!.env.example
+
+# Local storage and sensitive uploads
+/uploads/
+/storage/private/
+*.pdf
+
+# TypeScript cache
+*.tsbuildinfo
+next-env.d.ts
