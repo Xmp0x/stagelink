@@ -11,10 +11,11 @@
 2. [Tech Stack](#tech-stack)
 3. [Local Development](#local-development)
 4. [Running Tests](#running-tests)
-5. [Deploy to Netlify](#deploy-to-netlify)
-6. [Environment Variables Reference](#environment-variables-reference)
-7. [Demo Accounts](#demo-accounts)
-8. [Architecture Notes](#architecture-notes)
+5. [Deploy to Vercel (Recommended)](#deploy-to-vercel-recommended)
+6. [Deploy to Netlify](#deploy-to-netlify)
+7. [Environment Variables Reference](#environment-variables-reference)
+8. [Demo Accounts](#demo-accounts)
+9. [Architecture Notes](#architecture-notes)
 
 ---
 
@@ -121,6 +122,56 @@ npm run test:watch # watch mode
 ```
 
 All 49 tests across 13 suites should pass.
+
+---
+
+## Deploy to Vercel (Recommended)
+
+Vercel provides native, zero-configuration hosting for Next.js App Router applications.
+
+### Step 1 — Import Project to Vercel
+1. Go to [vercel.com/new](https://vercel.com/new)
+2. Connect your GitHub account and import the repository: **`Xmp0x/stagelink`**
+3. Framework Preset: **Next.js** (auto-detected)
+4. Root Directory: `./` (default)
+
+### Step 2 — Provision a Cloud Database
+Before finishing the import, ensure you have a cloud PostgreSQL database:
+- **[Neon](https://neon.tech)** (Recommended: free serverless PostgreSQL, zero idle cost)
+- Or **[Supabase](https://supabase.com)** (Free PostgreSQL + optional S3-compatible storage)
+
+Copy the database connection string:
+```
+postgresql://USER:PASSWORD@HOST:5432/stagelink?sslmode=require
+```
+
+### Step 3 — Configure Environment Variables in Vercel
+In the Vercel project configuration page (before clicking Deploy), expand **Environment Variables** and add:
+
+| Variable | Value | Notes |
+|----------|-------|-------|
+| `DATABASE_URL` | `postgresql://...` | Connection string to cloud database |
+| `NEXTAUTH_SECRET` | `openssl rand -base64 32` output | Secret string (at least 32 characters) |
+| `NEXTAUTH_URL` | `https://your-project.vercel.app` | (Or set to your production domain) |
+| `NODE_ENV` | `production` | Set by Vercel automatically |
+| `AI_ENABLED` | `true` | Enable Copilot features |
+| `AI_PROVIDER` | `mock` | Use `mock` for zero-cost demo or `gemini` for live AI |
+| `STORAGE_PROVIDER` | `local` | Or `s3` for persistent cloud storage |
+| `ADMIN_INITIAL_EMAIL` | `admin@stagelink.ma` | Admin account for seed script |
+| `ADMIN_INITIAL_PASSWORD` | `Admin123!` | Secure admin password |
+
+### Step 4 — Deploy
+Click **Deploy**. Vercel will install dependencies, generate Prisma Client via `postinstall`, and build the static & serverless routes.
+
+### Step 5 — Initialize Database Schema & Demo Data
+From your local machine or terminal, run once against the cloud database:
+```bash
+# Push Prisma schema to your cloud DB
+npx prisma db push
+
+# (Optional) Seed Moroccan demo data (companies, listings, demo students)
+node scripts/seed.mjs
+```
 
 ---
 
