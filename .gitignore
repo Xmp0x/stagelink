@@ -35,7 +35,11 @@ lerna-debug.log*
 # Local storage and sensitive uploads
 /uploads/
 /storage/private/
+/.local/
 *.pdf
+
+# Netlify build cache and CLI state
+/.netlify/
 
 # TypeScript cache
 *.tsbuildinfo

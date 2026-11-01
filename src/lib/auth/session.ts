@@ -12,9 +12,13 @@ export async function getSession(req?: Request): Promise<SessionPayload | null> 
   if (req) {
     const cookieHeader = req.headers.get("cookie");
     if (cookieHeader) {
-      const match = cookieHeader.match(new RegExp(`(?:^|; )${SESSION_COOKIE_NAME}=([^;]*)`));
+      const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${SESSION_COOKIE_NAME}=([^;]*)`));
       if (match) {
-        token = decodeURIComponent(match[1]);
+        try {
+          token = decodeURIComponent(match[1]);
+        } catch {
+          return null;
+        }
       }
     }
   }
@@ -55,7 +59,7 @@ export async function requireUser(req?: Request): Promise<SessionPayload> {
     throw new Error("UNAUTHORIZED: Account is deactivated or does not exist.");
   }
 
-  return session;
+  return { ...session, role: user.role };
 }
 
 /**

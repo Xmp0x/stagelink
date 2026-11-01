@@ -1,0 +1,62 @@
+# =============================================================================
+# StageLink — Netlify Deployment Configuration
+# =============================================================================
+# Docs: https://docs.netlify.com/configure-builds/file-based-configuration/
+# Next.js on Netlify: https://docs.netlify.com/integrations/frameworks/next-js/
+# =============================================================================
+
+[build]
+  command   = "npm run build"
+  publish   = ".next"
+
+[build.environment]
+  NODE_VERSION         = "20"
+  # Tell Prisma to generate a compatible binary for Netlify Lambda functions
+  PRISMA_CLI_BINARY_TARGETS = "rhel-openssl-3.0.x"
+
+# ---------------------------------------------------------------------------
+# Next.js App Router support via the official Netlify plugin.
+# This replaces the legacy netlify-plugin-nextjs and handles:
+#   - Server-side pages as Netlify Functions
+#   - API routes as Netlify Functions
+#   - Image optimisation
+#   - ISR/SSR caching via Netlify's CDN
+# ---------------------------------------------------------------------------
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# ---------------------------------------------------------------------------
+# Redirect rules
+# All routing is handled by Next.js; Netlify must forward everything.
+# The plugin above adds these automatically, but being explicit is safer.
+# ---------------------------------------------------------------------------
+[[redirects]]
+  from   = "/*"
+  to     = "/.netlify/functions/___netlify-handler"
+  status = 200
+
+# ---------------------------------------------------------------------------
+# Security headers (applied globally to all responses)
+# ---------------------------------------------------------------------------
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options           = "DENY"
+    X-Content-Type-Options    = "nosniff"
+    Referrer-Policy           = "strict-origin-when-cross-origin"
+    Permissions-Policy        = "camera=(), microphone=(), geolocation=()"
+    X-XSS-Protection          = "1; mode=block"
+
+# Cache static assets aggressively (Next.js hashes filenames)
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ---------------------------------------------------------------------------
+# Function settings — increase timeout for AI copilot & Prisma cold-starts
+# ---------------------------------------------------------------------------
+[functions]
+  # 26-second timeout (Netlify Pro cap; free tier is 10 s)
+  # Adjust down to 10 if using Netlify free tier.
+  included_files = ["prisma/schema.prisma"]

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -14,27 +14,32 @@ interface NavbarUser {
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const [user, setUser] = React.useState<NavbarUser | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
+    const controller = new AbortController();
     async function checkAuth() {
       try {
-        const res = await fetch("/api/auth/me");
+        const res = await fetch("/api/auth/me", { signal: controller.signal, cache: "no-store" });
         if (res.ok) {
           const body = await res.json();
           if (body.success && body.data?.user) {
             setUser(body.data.user);
           }
+        } else if (res.status === 401) {
+          setUser(null);
         }
       } catch {
         // Not authenticated
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
     checkAuth();
-  }, []);
+    return () => controller.abort();
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
@@ -75,7 +80,7 @@ export function Navbar() {
               <span>AI Copilot</span>
               <span className="h-1.5 w-1.5 rounded-full bg-accent-emerald animate-pulse" />
             </Link>
-            <Link href="/companies" className="hover:text-foreground transition-colors">
+            <Link href="/register?role=COMPANY" className="hover:text-foreground transition-colors">
               For Companies
             </Link>
           </nav>

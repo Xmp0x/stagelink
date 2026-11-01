@@ -86,12 +86,8 @@ export function Footer() {
       <div className="container mt-8 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between text-xs text-muted-foreground">
         <p>&copy; {new Date().getFullYear()} StageLink. All rights reserved.</p>
         <div className="flex gap-4 mt-2 sm:mt-0">
-          <Link href="/privacy" className="hover:text-foreground transition-colors">
-            Privacy Policy
-          </Link>
-          <Link href="/terms" className="hover:text-foreground transition-colors">
-            Terms of Service
-          </Link>
+          <span>Privacy Policy (coming soon)</span>
+          <span>Terms of Service (coming soon)</span>
         </div>
       </div>
     </footer>

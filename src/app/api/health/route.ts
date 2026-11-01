@@ -13,7 +13,7 @@ export async function GET() {
   }
 
   return apiSuccess({
-    status: "ok",
+    status: dbStatus === "connected" ? "ok" : "degraded",
     app: "StageLink",
     version: "1.0.0",
     environment: process.env.NODE_ENV || "development",
@@ -22,5 +22,5 @@ export async function GET() {
     storageProvider: process.env.STORAGE_PROVIDER || "local",
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
-  });
+  }, dbStatus === "connected" ? 200 : 503);
 }

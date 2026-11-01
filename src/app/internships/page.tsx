@@ -47,9 +47,13 @@ function InternshipsContent() {
   const [items, setItems] = React.useState<InternshipItem[]>([]);
   const [total, setTotal] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const requestId = React.useRef(0);
 
   const fetchInternships = React.useCallback(async () => {
+    const currentRequest = ++requestId.current;
     setLoading(true);
+    setError(null);
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (city && city !== "all") params.set("city", city);
@@ -58,17 +62,18 @@ function InternshipsContent() {
 
     try {
       const res = await fetch(`/api/internships?${params.toString()}`);
-      if (res.ok) {
-        const body = await res.json();
-        if (body.success) {
-          setItems(body.data.items);
-          setTotal(body.data.pagination.total);
-        }
-      }
+      const body = await res.json();
+      if (!res.ok || !body.success) throw new Error("Search unavailable");
+      if (currentRequest !== requestId.current) return;
+      setItems(body.data.items);
+      setTotal(body.data.pagination.total);
     } catch {
-      // Ignore
+      if (currentRequest !== requestId.current) return;
+      setItems([]);
+      setTotal(0);
+      setError("We couldn't load internships. Please try again in a moment.");
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) setLoading(false);
     }
   }, [q, city, modality, isPaid]);
 
@@ -183,6 +188,11 @@ function InternshipsContent() {
       {loading ? (
         <div className="py-16 text-center text-muted-foreground animate-pulse">
           Loading verified internships from the internal database...
+        </div>
+      ) : error ? (
+        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-8 text-center space-y-4">
+          <p className="text-rose-700">{error}</p>
+          <Button variant="outline" onClick={fetchInternships}>Try again</Button>
         </div>
       ) : items.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-12 text-center bg-card space-y-3">
